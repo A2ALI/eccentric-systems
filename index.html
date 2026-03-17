@@ -300,24 +300,42 @@
 
     /* RESPONSIVE */
     @media (max-width: 768px) {
-      .nav-pill { padding: 10px 12px; }
+      .nav-pill { padding: 10px 12px; border-radius: 100px; width: calc(100% - 24px); }
       .hide-mobile { display: none; }
-      .countdown-glass { padding: 16px 20px; gap: 16px; }
+      .countdown-glass { padding: 16px; gap: 16px; flex-direction: column; align-items: center; width: 100%; box-sizing: border-box; }
       .cd-num { font-size: 22px; }
-      .hero { padding: 120px 24px 80px; }
-      .section, .context-bridge, .footer { padding-left: 24px; padding-right: 24px; }
+      .cd-timer { justify-content: center; flex-wrap: wrap; }
+      .hero { padding: 120px 20px 60px; }
+      .hero h1 { font-size: clamp(38px, 10vw, 52px); }
+      .hero-sub { font-size: 15px; }
+      .section, .context-bridge, .footer { padding-left: 20px; padding-right: 20px; }
+      .sec-h2 { font-size: clamp(28px, 8vw, 36px); }
       .grid-2, .sol-grid, .contrast-grid, .math-grid { grid-template-columns: 1fr; }
-      .founding-card { padding: 32px 24px; }
-      #postPayment { padding: 80px 24px; }
+      .founding-card { padding: 32px 20px; margin: 40px 16px 0; border-radius: 20px; box-sizing: border-box; }
+      .fm-price { font-size: clamp(42px, 12vw, 52px); }
+      .fm-spots { flex-direction: column; align-items: flex-start; gap: 12px; }
+      #postPayment { padding: 80px 20px; }
+      .pp-title { font-size: clamp(26px, 7vw, 32px); }
       .modal-box { max-width: 100%; border: none; margin: 0; min-height: 100vh; transform: translateY(0); }
       #modalOverlay { padding: 0; align-items: flex-start; }
-      .btn-close { top: 20px; right: 20px; }
-      .modal-header, .modal-body { padding: 24px 20px; }
+      .btn-close { top: 16px; right: 16px; }
+      .modal-header { padding: 32px 20px 24px; }
+      .modal-body { padding: 24px 20px; }
       .form-row { grid-template-columns: 1fr; }
-      .form-actions { display: flex; flex-direction: column-reverse; }
-      .btn-form-next, .btn-form-back { width: 100%; justify-content: center; }
+      .form-actions { display: flex; flex-direction: column-reverse; gap: 12px; }
+      .btn-form-next, .btn-form-back { width: 100%; justify-content: center; margin: 0; }
+      .math-card { padding: 32px 20px; }
+      .footer { flex-direction: column; align-items: center; gap: 24px; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+      .footer-brand { text-align: center; }
     }
     
+    @media (max-width: 380px) {
+      .btn-hero { padding: 16px 32px; width: 100%; justify-content: center; box-sizing: border-box; }
+      .nav-pill { padding: 8px; }
+      .nav-brand { font-size: 14px; }
+      .btn-nav { padding: 8px 16px; font-size: 11px; }
+    }
   </style>
 </head>
 <body>
