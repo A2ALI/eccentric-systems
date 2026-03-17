@@ -1,18 +1,920 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eccentric Systems — Operational Intelligence</title>
-    <meta name="description" content="We identify the exact systems failures costing your business measurable revenue. Operational intelligence audits for growth-stage companies between $1M and $20M.">
-    <meta property="og:title" content="Eccentric Systems — Operational Intelligence">
-    <meta property="og:description" content="Find out exactly what your current systems are costing you.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/index.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eccentric Systems · HVAC Dispatch Intelligence</title>
+  <meta name="description" content="Your dispatcher is maxed out. Peak season is here. We built the system that handles the overflow. 24/7, automatically, without adding payroll.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* CSS VARIABLES */
+    :root {
+      --black: #060806;
+      --surface: #0a0f0a;
+      --card: #0e130e;
+      --border: #162018;
+      --border-light: #1e3020;
+      --green: #2d6a35;
+      --green-dim: #1e5c28;
+      --green-deep: #1a4a20;
+      --green-faint: rgba(45,106,53,0.10);
+      --green-glow: rgba(45,106,53,0.06);
+      --gold: #c9a96e;
+      --gold-dim: #8a6f42;
+      --gold-faint: rgba(201,169,110,0.08);
+      --white: #f0f5f0;
+      --text: #b8c4b8;
+      --muted: #4a5a4a;
+      --dim: #1e2e1e;
+    }
+
+    /* GLOBAL STYLES */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--black);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Noise Overlay SVG */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      opacity: 0.035;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* UTILITIES */
+    .font-display { font-family: 'Space Grotesk', sans-serif; }
+    .font-mono { font-family: 'Space Mono', monospace; }
+    .text-green { color: var(--green); }
+    .text-gold { color: var(--gold); }
+    .text-white { color: var(--white); }
+    .text-muted { color: var(--muted); }
+    .bg-surface { background-color: var(--surface); }
+    
+    .flex { display: flex; }
+    .centered { align-items: center; justify-content: center; }
+
+    a { text-decoration: none; }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes cdSlideIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes cdGlow {
+      0% { opacity: 0.5; }
+      50% { opacity: 1; }
+      100% { opacity: 0.5; }
+    }
+
+    @keyframes pulseRing {
+      0% { box-shadow: 0 0 0 0 rgba(45,106,53, 0.7); }
+      70% { box-shadow: 0 0 0 8px rgba(45,106,53, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(45,106,53, 0); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    @keyframes ppPop {
+      from { opacity: 0; transform: scale(0.6); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.75s ease, transform 0.75s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* NAV */
+    .nav-pill { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; width: calc(100% - 48px); max-width: 960px; background: rgba(12,12,12,0.85); border: 1px solid var(--border-light); border-radius: 100px; padding: 12px 16px 12px 20px; backdrop-filter: blur(20px); display: flex; justify-content: space-between; align-items: center; }
+    .nav-left { display: flex; align-items: center; gap: 14px; }
+    .nav-brand { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); }
+    .nav-tag { background: rgba(45,106,53,0.12); border: 1px solid rgba(45,106,53,0.3); border-radius: 100px; padding: 5px 14px; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--green); }
+    .btn-nav { background: var(--white); color: var(--black); border-radius: 100px; padding: 10px 22px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; transition: all 0.2s ease; display: inline-block; cursor: pointer; }
+    .btn-nav:hover { background: var(--gold); transform: scale(1.03); }
+
+    /* COUNTDOWN */
+    .countdown-wrap { display: flex; align-items: center; justify-content: center; padding: 24px 32px; background: linear-gradient(180deg, rgba(45,106,53,0.04) 0%, transparent 100%); position: relative; }
+    .countdown-wrap::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(45,106,53,0.15) 0%, transparent 70%); pointer-events: none; animation: cdGlow 4s infinite ease-in-out; }
+    .countdown-glass { display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap; background: rgba(255,255,255,0.025); backdrop-filter: blur(20px); border: 1px solid rgba(45,106,53,0.2); border-radius: 16px; padding: 20px 36px; box-shadow: 0 0 40px rgba(45,106,53,0.06), inset 0 1px 0 rgba(255,255,255,0.04); animation: cdSlideIn 0.8s ease forwards; position: relative; z-index: 2; }
+    .cd-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--green); position: relative; }
+    .cd-pulse::after { content: ""; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; border-radius: 50%; border: 2px solid var(--green); animation: pulseRing 2s infinite ease-out; box-sizing: content-box; }
+    .cd-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .cd-timer { display: flex; gap: 8px; align-items: center; }
+    .cd-unit { display: flex; flex-direction: column; gap: 3px; min-width: 44px; background: rgba(0,0,0,0.2); border: 1px solid rgba(45,106,53,0.15); border-radius: 8px; padding: 8px 6px; text-align: center; }
+    .cd-num { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 500; color: var(--white); font-variant-numeric: tabular-nums; line-height: 1; }
+    .cd-sub { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .cd-colon { font-family: 'Space Grotesk', sans-serif; font-size: 22px; color: var(--green-dim); margin-bottom: 14px; animation: blink 1s step-end infinite; }
+    .cd-rate-lock { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); background: rgba(201,169,110,0.06); border: 1px solid rgba(201,169,110,0.15); border-radius: 100px; padding: 5px 14px; }
+
+    /* HERO */
+    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 140px 32px 100px; position: relative; }
+    .hero-glow { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(circle, rgba(45,106,53,0.08) 0%, transparent 60%); pointer-events: none; z-index: 0; }
+    .hero-eyebrow { background: rgba(255,255,255,0.05); border: 1px solid var(--border-light); border-radius: 100px; padding: 8px 18px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px; opacity: 0; animation: fadeUp 0.7s ease forwards 0.1s; position: relative; z-index: 1; }
+    .hero-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .hero h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(52px, 9vw, 110px); font-weight: 300; line-height: 1.02; color: var(--white); max-width: 820px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.3s; position: relative; z-index: 1; margin-bottom: 24px; }
+    .fade-text { background: linear-gradient(to right, var(--white) 0%, rgba(245,241,234,0.25) 100%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style: italic; }
+    .hero-sub { font-size: 17px; font-weight: 300; color: var(--muted); max-width: 480px; line-height: 1.9; opacity: 0; animation: fadeUp 0.8s ease forwards 0.5s; position: relative; z-index: 1; margin-bottom: 48px; }
+    .hero-cta-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.7s; position: relative; z-index: 1; }
+    .btn-hero { background: var(--white); color: var(--black); border-radius: 100px; padding: 20px 52px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 12px; transition: all 0.3s ease; border: none; cursor: pointer; text-decoration: none; }
+    .btn-hero:hover { background: var(--gold); transform: scale(1.03); box-shadow: 0 0 30px rgba(201,169,110,0.3); }
+    .btn-hero-icon { width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.12); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .hero-meta { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+    /* CONTEXT BRIDGE */
+    .context-bridge { padding: 48px 60px; background: var(--surface); }
+    .cb-text { border-left: 1px solid var(--green-deep); padding-left: 28px; font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 300; font-style: italic; color: var(--muted); max-width: 680px; line-height: 1.9; }
+    .section-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border-light), transparent); margin: 0 60px; }
+
+    /* PROBLEM */
+    .section { padding: 120px 60px; }
+    .sec-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--green); margin-bottom: 40px; display: inline-flex; align-items: center; gap: 8px; }
+    .sec-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .sec-h2 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(36px, 4.5vw, 62px); font-weight: 300; color: var(--white); line-height: 1.12; max-width: 760px; margin-bottom: 24px; }
+    .sec-h2 em { font-style: italic; color: var(--gold); }
+    .sec-p { font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.95; margin-bottom: 64px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+    
+    .reality-card { background: var(--card); padding: 48px; position: relative; transition: background 0.3s ease; }
+    .reality-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, #7a1a1a, transparent); opacity: 0.7; }
+    .reality-card:hover { background: #111111; }
+    .rc-time { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a3030; display: block; margin-bottom: 16px; }
+    .rc-title { font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; color: var(--white); margin-bottom: 12px; display: block; }
+    .rc-body { font-size: 14px; color: var(--muted); line-height: 1.85; margin-bottom: 24px; }
+    .rc-cost { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 300; color: #c06060; font-style: italic; display: block; line-height: 1; }
+    .rc-cost-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #7a2a2a; display: block; margin-top: 8px; }
+
+    /* SOLUTION */
+    .sol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 64px; }
+    .sol-card { background: var(--card); border: 1px solid var(--border); padding: 40px; position: relative; transition: border-color 0.3s ease; }
+    .sol-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--green), transparent); }
+    .sol-card:hover { border-color: var(--green-deep); }
+    .sol-num { font-family: 'Space Grotesk', sans-serif; font-size: 48px; font-weight: 300; color: var(--dim); display: block; margin-bottom: 16px; line-height: 1; }
+    .sol-title { font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; color: var(--white); display: block; margin-bottom: 12px; }
+    .sol-body { font-size: 14px; color: var(--muted); line-height: 1.85; margin-bottom: 16px; }
+    .sol-out { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: var(--green); display: block; margin-top: 16px; }
+
+    /* CONTRAST */
+    .contrast-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); margin-top: 64px; }
+    .col-before { background: #0b0808; padding: 48px; }
+    .col-after { background: #080b08; padding: 48px; }
+    .bl { color: #8a3030; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 32px; display: inline-flex; align-items: center; gap: 8px; }
+    .bl::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #c06060; }
+    .al { color: var(--green); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 32px; display: inline-flex; align-items: center; gap: 8px; }
+    .al::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .c-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+    .c-row:last-child { border-bottom: none; }
+    .c-mark-b { color: #c06060; font-size: 12px; margin-top: 3px; flex-shrink: 0; }
+    .c-mark-a { color: var(--green); font-size: 12px; margin-top: 3px; flex-shrink: 0; }
+    .c-text { font-size: 14px; color: var(--text); line-height: 1.7; }
+
+    /* MATH */
+    .bg-black { background: var(--black); }
+    .math-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); margin-top: 64px; }
+    .math-card { background: var(--card); padding: 48px 40px; text-align: center; }
+    .math-num { font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 300; color: var(--white); line-height: 1; margin-bottom: 12px; }
+    .math-unit { font-size: 30px; color: var(--gold); }
+    .math-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 14px; }
+    .math-desc { font-size: 13px; color: var(--muted); line-height: 1.8; }
+
+    /* FOUNDING MEMBER */
+    .founding-card { max-width: 660px; margin: 64px auto 0; background: var(--card); border: 1px solid var(--border-light); padding: 60px; position: relative; }
+    .founding-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+    .fm-badge { display: inline-flex; background: rgba(201,169,110,0.08); border: 1px solid rgba(201,169,110,0.2); border-radius: 100px; padding: 6px 18px; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 32px; }
+    .fm-price-row { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+    .fm-price { font-family: 'Space Grotesk', sans-serif; font-size: 76px; font-weight: 300; color: var(--white); line-height: 1; }
+    .fm-sub { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--muted); }
+    .fm-price-note { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--gold); margin-bottom: 40px; display: block; }
+    .fm-includes { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; display: block; }
+    .fm-item { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .fm-item:last-child { border-bottom: none; }
+    .fm-check { color: var(--green); font-size: 12px; margin-top: 3px; flex-shrink: 0; }
+    .fm-item-text { font-size: 14px; color: var(--text); line-height: 1.6; }
+    .fm-item-text strong { color: var(--white); font-weight: 500; }
+    .fm-spots { display: flex; justify-content: space-between; align-items: center; background: var(--black); border: 1px solid var(--border); padding: 16px 20px; margin: 32px 0; }
+    .fm-spots-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .fm-spots-val { font-family: 'Space Grotesk', sans-serif; font-size: 26px; color: var(--gold); }
+    .btn-fm { width: 100%; display: flex; justify-content: center; background: var(--white); color: var(--black); border-radius: 100px; padding: 20px 52px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; transition: all 0.3s ease; border: none; cursor: pointer; text-decoration: none; align-items: center; gap: 12px; }
+    .btn-fm:hover { background: var(--gold); transform: scale(1.03); box-shadow: 0 0 30px rgba(201,169,110,0.3); }
+    .fm-note { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: var(--muted); text-align: center; margin-top: 16px; line-height: 1.9; }
+
+    /* POST PAYMENT */
+    #postPayment { display: none; min-height: 100vh; background: var(--black); padding: 120px 60px; text-align: center; position: relative; }
+    #postPayment.active { display: block; }
+    .pp-check { width: 72px; height: 72px; border: 1px solid var(--green-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--green); margin: 0 auto 32px; animation: ppPop 0.5s ease forwards; }
+    .pp-title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(32px, 4vw, 52px); font-weight: 500; color: var(--white); margin-bottom: 16px; line-height: 1.1; }
+    .pp-sub { font-size: 16px; color: var(--muted); max-width: 480px; margin: 0 auto 56px; line-height: 1.9; }
+    .pp-steps { max-width: 560px; margin: 0 auto 48px; text-align: left; }
+    .pp-step { display: flex; align-items: flex-start; gap: 20px; padding: 24px 0; border-bottom: 1px solid var(--border); }
+    .pp-step:last-child { border-bottom: none; }
+    .pp-step-num { font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.15em; color: var(--green); background: rgba(45,106,53,0.1); border: 1px solid rgba(45,106,53,0.2); border-radius: 100px; padding: 4px 12px; white-space: nowrap; margin-top: 2px; flex-shrink: 0; }
+    .pp-step-text { font-size: 14px; color: var(--text); line-height: 1.8; }
+    .pp-step-text strong { color: var(--white); font-weight: 500; }
+    .pp-discord-btn { background: #5865F2; color: #fff; border-radius: 100px; padding: 18px 44px; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 12px; transition: all 0.3s ease; text-decoration: none; border: none; cursor: pointer; }
+    .pp-discord-btn:hover { background: #4752c4; transform: scale(1.03); box-shadow: 0 0 30px rgba(88,101,242,0.4); }
+    .pp-note { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--muted); line-height: 1.9; max-width: 420px; margin: 48px auto 0; }
+
+    /* FOOTER */
+    .footer { padding: 36px 60px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .footer-brand { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 300; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .footer-links { display: flex; gap: 28px; }
+    .footer-links a { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s ease; }
+    .footer-links a:hover { color: var(--text); }
+
+    /* MODAL */
+    #modalOverlay { position: fixed; inset: 0; background: rgba(5,5,5,0.92); backdrop-filter: blur(12px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+    #modalOverlay.active { opacity: 1; pointer-events: all; }
+    .modal-box { max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; background: var(--surface); border: 1px solid var(--border-light); transform: translateY(24px); transition: transform 0.4s ease; }
+    #modalOverlay.active .modal-box { transform: translateY(0); }
+    .modal-header { padding: 40px 48px 32px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); z-index: 10; }
+    .modal-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; display: inline-flex; align-items: center; gap: 8px; }
+    .modal-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 300; color: var(--white); line-height: 1.2; }
+    .btn-close { position: absolute; top: 32px; right: 32px; width: 32px; height: 32px; border-radius: 50%; background: var(--border-light); border: none; cursor: pointer; color: var(--muted); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s ease, color 0.2s ease; }
+    .btn-close:hover { background: var(--border); color: var(--text); }
+    .modal-body { padding: 40px 48px 48px; }
+    .step-indicator { display: flex; gap: 8px; margin-bottom: 32px; }
+    .step-dot { flex: 1; max-width: 24px; height: 3px; background: var(--border-light); }
+    .step-dot.active { background: var(--green); }
+    .step-dot.done { background: var(--green-deep); }
+    .form-step { display: none; }
+    .form-step.active { display: block; animation: fadeUp 0.4s ease forwards; }
+    .form-sec-title { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 300; font-style: italic; color: var(--white); margin-bottom: 24px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--green-dim); margin-bottom: 10px; display: block; }
+    .form-input, .form-select, .form-textarea { background: var(--black); border: 1px solid var(--border-light); color: var(--white); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 300; padding: 14px 18px; outline: none; border-radius: 0; transition: border-color 0.2s ease; width: 100%; box-sizing: border-box; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--green-dim); }
+    .form-textarea { min-height: 90px; resize: vertical; }
+    .form-actions { display: flex; gap: 16px; margin-top: 32px; }
+    .btn-form-next { background: var(--white); color: var(--black); border-radius: 100px; padding: 14px 36px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; flex: 1; cursor: pointer; border: none; transition: all 0.2s ease; text-align: center; }
+    .btn-form-next:hover { background: var(--gold); }
+    .btn-form-back { background: transparent; color: var(--muted); border: 1px solid var(--border-light); border-radius: 100px; padding: 14px 28px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 400; cursor: pointer; transition: all 0.2s ease; text-align: center; }
+    .btn-form-back:hover { border-color: var(--muted); color: var(--text); }
+    .form-divider { height: 1px; background: var(--border); margin: 32px 0; }
+    .form-notice { background: var(--black); border: 1px solid var(--border); padding: 16px 20px; margin-bottom: 32px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.05em; color: var(--muted); line-height: 1.9; }
+    .form-notice strong { color: var(--text); }
+    .payment-reveal { display: none; margin-top: 32px; text-align: center; }
+    .payment-reveal.active { display: block; animation: fadeUp 0.5s ease forwards; }
+    .rev-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 300; color: var(--white); margin-bottom: 8px; }
+    .rev-sub { font-size: 13px; color: var(--muted); line-height: 1.8; margin-bottom: 24px; }
+    .btn-form-pay { background: var(--gold); color: var(--black); border-radius: 100px; padding: 16px 40px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; display: inline-flex; justify-content: center; text-decoration: none; transition: all 0.3s ease; margin-bottom: 12px; }
+    .btn-form-pay:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(201,169,110,0.3); }
+    .rev-small { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: var(--muted); margin-top: 8px; line-height: 1.9; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .nav-pill { padding: 10px 12px; }
+      .hide-mobile { display: none; }
+      .countdown-glass { padding: 16px 20px; gap: 16px; }
+      .cd-num { font-size: 22px; }
+      .hero { padding: 120px 24px 80px; }
+      .section, .context-bridge, .footer { padding-left: 24px; padding-right: 24px; }
+      .grid-2, .sol-grid, .contrast-grid, .math-grid { grid-template-columns: 1fr; }
+      .founding-card { padding: 32px 24px; }
+      #postPayment { padding: 80px 24px; }
+      .modal-box { max-width: 100%; border: none; margin: 0; min-height: 100vh; transform: translateY(0); }
+      #modalOverlay { padding: 0; align-items: flex-start; }
+      .btn-close { top: 20px; right: 20px; }
+      .modal-header, .modal-body { padding: 24px 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-actions { display: flex; flex-direction: column-reverse; }
+      .btn-form-next, .btn-form-back { width: 100%; justify-content: center; }
+    }
+    
+  </style>
+</head>
+<body>
+
+  <!-- SECTION 1 · NAV -->
+  <nav class="nav-pill">
+    <div class="nav-left">
+      <svg width="30" height="30" viewBox="0 0 1350 1252" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M455.5 260.4c-2.7.7-6.5 2-8.4 3-5.4 2.9-13 11.1-15.9 17.4-2.3 4.9-2.7 7-2.7 14.7 0 7.9.4 9.7 2.9 14.9 3.7 7.6 9.6 13.5 17.2 17.2 5.3 2.6 6.9 2.9 15.4 2.9 7.6 0 10.4-.5 14.2-2.2 7.2-3.3 14.6-10.8 17.9-18.1l2.8-6.2 47.8.2 47.8.3.3 11.3c.3 12.9.7 12.4-10.3 13.6-14.6 1.6-28.8 8.5-41.4 20.1-7 6.6-12.1 13.6-17.3 24-4.3 8.6-5.7 12.7-7.2 21.9l-1.2 7.1-12.5-.3c-13.6-.4-19.2.6-31.8 5.7-10.1 4.1-19 10.2-26.4 18-15.4 16.4-22.9 33.6-24.4 56.4l-.6 9.7-36.6-.2-36.6-.3-.3-52.5-.2-52.5 6.5-2.9c7.3-3.2 13.4-9.2 17.5-17.2 3.6-7.1 4-19.6.9-27.9s-12.1-17.3-20.4-20.4c-8.8-3.3-20.8-2.7-28.4 1.4-14.1 7.7-21.9 23.1-19.1 37.9 2.4 12.7 10.9 23.4 21.5 26.9l4 1.4.5 58.6.5 58.7 2.8 2.7 2.7 2.8 42.3.1c23.2.1 43.2.2 44.4.3 1.6.1 2.5 1.1 3.3 3.8 1.8 5.6 8.7 18.2 12.7 23 1.9 2.4 3.2 4.7 2.9 5.2s-2.7 1.4-5.2 2c-5.5 1.4-16.6 6.8-22.6 10.9-5.2 3.6-15.3 14.1-19.5 20.2-9.4 13.8-14.1 27.8-15 44.7l-.6 11.3h-18.3l-1.3-3.8c-2.1-5.8-6.6-11.7-11.8-15.5-8.8-6.3-11-7.1-21.3-7.1-8.1-.1-10.2.3-14.3 2.3-7.5 3.7-14 10.2-17.8 17.8-3 6.1-3.3 7.7-3.4 15.3 0 7.7.3 9.1 3.5 15.3 3.7 7.5 8.5 12.3 16.5 16.5 4.5 2.4 6.1 2.7 15 2.7 11.9-.1 16.7-1.8 24.3-8.9 4.2-4 6.2-6.9 10.2-15.6.6-1.2 3.1-1.6 11.9-1.8 10.7-.3 11.3-.2 11.8 1.8 1.1 4.3 7.6 16.6 11.8 22.6 9 12.6 24.4 24.2 37.5 28.4 3.6 1.1 7.1 2.2 7.8 2.5.9.3-.4 2.9-4.2 8.3-13.5 19.2-18 44.4-12.1 67.8 2.6 10.4 8.7 23.8 13.3 29.1 1.5 1.7 4.4 5.2 6.5 7.7 7.1 8.6 19.6 16.5 33.7 21.2 7.8 2.7 9.7 2.9 23.3 2.9h14.8l-.3 4.5-.3 4.5-74.8.3-74.7.2-2.7-5.7c-6.2-13.1-18.5-21.3-32-21.3-8.3 0-13.4 1.5-19.9 5.7-6.3 4.1-9.9 8.2-13.3 15.3-2.2 4.7-2.6 6.8-2.6 14.5 0 7.8.4 9.7 2.8 14.7 3.7 7.5 12.8 16 19.9 18.4 3.6 1.3 7.8 1.8 13.3 1.8 10.1-.2 17-3.1 24-10.1 5-5 6.2-6.7 8.9-13.6l1.5-3.7H448v56.8l-5.4 2.2c-6.4 2.5-14.1 10.1-17.4 17-4.3 9-4.4 21.3-.3 30.6 2.8 6.2 10.3 13.7 16.9 17.1 5.1 2.5 6.8 2.8 15.2 2.8 11.4 0 16.2-1.8 24.1-9.2 15.2-14.2 15.4-36.7.4-51.8-3.1-3.2-6.9-5.8-10-6.9-2.7-1.1-5.2-2.3-5.5-2.7s-.3-13 0-28.1l.5-27.3 26.6-.3 26.6-.2 2.3 6.2c4.6 12.7 15 27.1 26.6 36.6 10.5 8.6 27.9 15.6 41.9 16.8 8.8.8 22.8-1 31-4 19.8-7.2 38.7-25.2 46.6-44.6 5.3-13 5.9-19.1 5.9-56 0-31.5-.1-33.8-1.9-35.8-2.7-3.2-9-3-12.2.4l-2.4 2.6-.5 35.1c-.6 32.6-.8 35.7-2.8 41.7-5.4 16.2-17.3 30.1-31.3 36.8-10.5 5-17.2 6.6-27.5 6.4-32.8-.4-60.4-28.6-60.7-62.1-.1-12.6.4-13.9 8.1-19.4 16.2-11.8 28.8-31.9 32.8-52.5 2.3-12.2 1.6-20-2-22.4-.6-.4-3-.8-5.3-.8-5.2 0-8.3 3.3-8.3 9 0 5.3-2.5 17.6-4.6 23-4.5 11.5-16.8 26.6-26.2 32.4-9.6 5.8-18.2 8.1-29.7 8-15.4-.1-26.5-4.9-39.7-17.3-6.7-6.3-8.6-8.8-12.3-16.5-5.4-11.3-7.5-19.9-7.5-30.2 0-21.2 9.8-40.7 27.2-54 6.4-5 7.7-7.8 5.8-12.5-1.7-3.9-4.4-4.9-13.7-4.9-24.7 0-46.8-15.5-56.7-39.8-11.5-28.5-1.8-62.4 22.8-79.6 11.5-8 18.2-10.1 32.6-10 10.4 0 12.2.3 19 3 13.7 5.5 24.1 15.2 31.7 29.7 4.2 7.9 6.1 14.2 7.4 24.2.6 4.4 1.5 9.2 2 10.7 1.8 4.5 9.5 5.3 13.4 1.3 2.1-2 2.5-3.4 2.5-8 0-18.4-9.8-41.1-23.8-55.5-10.7-10.9-22.2-17.9-34.7-20.9-7.7-1.9-12.1-4.9-18.7-12.6-12.1-14.3-17.5-30-16.5-47.9 1.2-20 9.3-36.5 24-48.8 6.6-5.4 10.6-7.7 19.8-11 5.3-1.9 8.4-2.3 17.9-2.3 12.1 0 16 1.1 16 4.3 0 3.8 3.2 13.9 6.9 21.6 7.8 16.6 19.3 28.2 35.6 36.1 11 5.4 19 7.5 29 7.7 8.8.1 11.2-1.3 12.1-7.3.5-2.7.1-3.9-1.8-6-2-2.1-3.8-2.8-10.9-3.7-4.7-.6-11.4-2.1-15-3.3-16.4-5.6-30.7-20.7-37-38.9-3-8.6-3.2-27.1-.5-37 2.8-10.2 9.2-21.5 16.1-28.5 8.1-8.1 13.2-11.5 23.5-15.5 8.2-3.1 8.9-3.2 20.5-2.8 10.7.4 12.8.8 19.7 3.7 18 7.6 29.7 20.9 37.6 42.5 2.5 7 2.6 7.6 3.1 42.6.6 37.2.8 38.7 5.2 41.1 3.1 1.6 8.4.3 10.3-2.6 2.3-3.5 2.4-64.3 0-76.5-3.3-17.5-10.2-31.4-21.6-43-11.1-11.4-20.3-17.6-31.8-21.5l-6.5-2.2-.5-19.1c-.5-18.3-.6-19.3-2.8-21.4l-2.3-2.3-54.3-.3-54.4-.2-1.9-5.2c-3.5-10-14.6-19.2-26.3-21.8-5.7-1.2-8.2-1.1-14.5.4" fill="#2d6a35"/>
+      </svg>
+      <span class="nav-brand">Eccentric <span class="text-gold">Systems</span></span>
+      <span class="nav-tag hide-mobile">HVAC Intelligence</span>
+    </div>
+    <div class="nav-right">
+      <a href="#" onclick="openModal(); return false;" class="btn-nav">Claim Your Spot</a>
+    </div>
+  </nav>
+  
+  <!-- SECTION 2 · 80px SPACER -->
+  <div style="height: 80px;"></div>
+
+  <!-- SECTION 3 · COUNTDOWN -->
+  <div class="countdown-wrap">
+    <div class="countdown-glass">
+      <div class="cd-pulse"></div>
+      <span class="cd-label hide-mobile">5 day special offer closes in</span>
+      <div class="cd-timer">
+        <div class="cd-unit">
+          <span class="cd-num" id="cd-d">--</span>
+          <span class="cd-sub">days</span>
+        </div>
+        <span class="cd-colon">:</span>
+        <div class="cd-unit">
+          <span class="cd-num" id="cd-h">--</span>
+          <span class="cd-sub">hrs</span>
+        </div>
+        <span class="cd-colon">:</span>
+        <div class="cd-unit">
+          <span class="cd-num" id="cd-m">--</span>
+          <span class="cd-sub">min</span>
+        </div>
+        <span class="cd-colon">:</span>
+        <div class="cd-unit">
+          <span class="cd-num" id="cd-s">--</span>
+          <span class="cd-sub">sec</span>
+        </div>
+      </div>
+      <span class="cd-rate-lock">Rate locked at $297 per month for all founding members</span>
+    </div>
+  </div>
+  
+  <!-- SECTION 4 · HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-eyebrow">HVAC Operations · Peak Season 2026</div>
+    <h1>Take back control of your operations<br>and <span class="fade-text">enjoy doing what you love again.</span></h1>
+    <p class="hero-sub">Stop overworking your dispatcher. Enhance your entire operation with a system that handles the volume, saves time, saves money, and gets more jobs done, all with full visibility and control from one screen.</p>
+    <div class="hero-cta-wrap">
+      <a href="#founding" class="btn-hero">Claim Founding Member Rate <span class="btn-hero-icon">&#8594;</span></a>
+      <span class="hero-meta">5 day special offer · No contract · Cancel anytime</span>
+    </div>
+  </section>
+  
+  <!-- SECTION 5 · CONTEXT BRIDGE -->
+  <div class="context-bridge">
+    <p class="cb-text">Do not overwork your dispatcher. Enhance your business with a system built to handle the workload, capture every opportunity, and give you back the time and clarity to run your business the way you always intended to.</p>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- SECTION 6 · PROBLEM -->
+  <section class="section">
+    <div class="sec-label">The reality of peak season</div>
+    <h2 class="sec-h2 reveal">What is actually happening<br>in your operation <em>right now</em></h2>
+    <p class="sec-p reveal">Not hypotheticals. This is any HVAC operation in Houston, Phoenix, or Tampa on a Tuesday afternoon in August.</p>
+    
+    <div class="grid-2 reveal">
+      <div class="reality-card">
+        <span class="rc-time">9:00 AM · Lines open</span>
+        <span class="rc-title">Call volume doubles overnight</span>
+        <p class="rc-body">Temperatures hit 98 degrees. Every AC unit that was limping along finally gives out. The office phone starts ringing before the first coffee is finished. By 9:30 AM the queue is already unmanageable.</p>
+      </div>
+      <div class="reality-card">
+        <span class="rc-time">11:15 AM · Double booked</span>
+        <span class="rc-title">Line two rings while line one is occupied</span>
+        <p class="rc-body">Both cannot be answered simultaneously. Line two goes to voicemail. The customer on line two needed an emergency AC repair. They leave no message. They call the next contractor on Google Maps. That contractor answers on the second ring and books the job immediately.</p>
+        <span class="rc-cost">$200 to $1,200</span>
+        <span class="rc-cost-label">average job value range gone in 30 seconds</span>
+      </div>
+      <div class="reality-card">
+        <span class="rc-time">6:00 PM · Office closes</span>
+        <span class="rc-title">The phones go dark for 14 hours</span>
+        <p class="rc-body">Every call that comes in after 6 PM hits voicemail. On a 95 degree Friday evening in Dallas that is 8 to 12 calls from families without AC heading into the weekend. Almost none of them call back on Monday. They have already found someone else.</p>
+        <span class="rc-cost">$1,600 to $14,400</span>
+        <span class="rc-cost-label">estimated weekly after-hours revenue range walking out the door</span>
+      </div>
+      <div class="reality-card">
+        <span class="rc-time">Ongoing · The slow bleed</span>
+        <span class="rc-title">Emergencies buried in the general queue</span>
+        <p class="rc-body">A genuine AC emergency during a heat wave is sitting in the same queue as a routine tune-up. No one has identified it as critical. No one has routed it to the right person. By the time a callback happens the customer has already booked the competitor who answered immediately.</p>
+        <span class="rc-cost">$0</span>
+        <span class="rc-cost-label">recovered from a misrouted emergency you never knew was critical</span>
+      </div>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- SECTION 7 · SOLUTION -->
+  <section class="section">
+    <div class="sec-label">What changes</div>
+    <h2 class="sec-h2 reveal">Six things the system handles<br>so your office <em>can focus on what matters</em></h2>
+    <p class="sec-p reveal">Not a replacement for your team. A layer that handles the volume your office physically cannot cover simultaneously and routes everything that needs human attention to exactly the right person.</p>
+    
+    <div class="sol-grid reveal">
+      <div class="sol-card">
+        <span class="sol-num">01</span>
+        <span class="sol-title">24/7 Inbound Call and Message Management</span>
+        <p class="sol-body">Every inbound call and message is handled around the clock. The system captures job details, qualifies the request, identifies the type of work needed, and responds immediately. No voicemail. No coverage gap at 9 PM on a Saturday. Every contact gets a response within seconds regardless of when it comes in.</p>
+        <span class="sol-out">Every contact answered. Every lead captured. Zero coverage gaps.</span>
+      </div>
+      <div class="sol-card">
+        <span class="sol-num">02</span>
+        <span class="sol-title">Emergency Qualification and Routing</span>
+        <p class="sol-body">The system qualifies every inbound job against criteria you define during setup. A no-AC situation during a heat wave gets flagged immediately and routed to the relevant personnel with full context. A routine maintenance request gets scheduled through normal flow. Nothing critical falls through the queue unnoticed.</p>
+        <span class="sol-out">Emergencies reach the right person in under 60 seconds, every time.</span>
+      </div>
+      <div class="sol-card">
+        <span class="sol-num">03</span>
+        <span class="sol-title">Job and Inspection Scheduling</span>
+        <p class="sol-body">Routine service calls, maintenance jobs, and inspections get scheduled directly into your calendar without the back and forth. The system checks availability, offers slots, confirms the booking, and syncs everything in real time. Your office handles complex conversations. The system handles the volume.</p>
+        <span class="sol-out">Routine bookings handled automatically. Your team freed for complex work.</span>
+      </div>
+      <div class="sol-card">
+        <span class="sol-num">04</span>
+        <span class="sol-title">Appointment Confirmations and Reminders</span>
+        <p class="sol-body">Confirmation sent at booking. Reminder 24 hours before arrival. Morning-of message 2 hours ahead of the scheduled time. No-shows and last-minute cancellations drop immediately. Technicians arrive to jobs that are actually ready and expecting them.</p>
+        <span class="sol-out">No-show rate drops 60 to 80 percent within the first month.</span>
+      </div>
+      <div class="sol-card">
+        <span class="sol-num">05</span>
+        <span class="sol-title">Post-Job Review Requests</span>
+        <p class="sol-body">Sent automatically 2 hours after every completed job with a direct link to your Google Business Profile. No relying on the technician to remember. No awkward verbal requests at the door. A consistent, professional message at exactly the right moment, every single time, for every single completed job.</p>
+        <span class="sol-out">3x more Google reviews within 60 days of going live.</span>
+      </div>
+      <div class="sol-card">
+        <span class="sol-num">06</span>
+        <span class="sol-title">Single Operations Dashboard</span>
+        <p class="sol-body">One screen where you manage everything. Appointments, scheduling, team assignments, inspections, quoting, job status, and incoming requests all visible in one place. No switching between tools. No chasing status updates across text threads. Full operational visibility from open to close.</p>
+        <span class="sol-out">Your entire operation visible and controllable from one screen.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8 · CONTRAST -->
+  <section class="section bg-surface">
+    <div class="sec-label reveal">Before and after</div>
+    <h2 class="sec-h2 reveal">The same peak season.<br><em>Two completely different operations.</em></h2>
+    
+    <div class="contrast-grid reveal">
+      <div class="col-before">
+        <span class="bl">Without the system</span>
+        <div class="c-row"><span class="c-mark-b">&#10005;</span><span class="c-text">Line two rings while line one is occupied. Goes to voicemail. The customer books the next contractor on the list.</span></div>
+        <div class="c-row"><span class="c-mark-b">&#10005;</span><span class="c-text">6 PM arrives. Phones go dark. Emergency calls hit voicemail overnight Friday. None of them call back Monday.</span></div>
+        <div class="c-row"><span class="c-mark-b">&#10005;</span><span class="c-text">An emergency AC job sits in the general queue. Nobody identifies it as critical. The window expires unnoticed.</span></div>
+        <div class="c-row"><span class="c-mark-b">&#10005;</span><span class="c-text">Technician arrives. Customer forgot the appointment. No-show. Two hours of billable time gone.</span></div>
+        <div class="c-row"><span class="c-mark-b">&#10005;</span><span class="c-text">Good job completed. Happy customer. Nobody asks for a review. 4.1 stars stays at 4.1 stars all summer.</span></div>
+        <div class="c-row"><span class="c-mark-b">&#10005;</span><span class="c-text">Three different tools open. Job status unknown until someone calls to check. Team assignments made by text message.</span></div>
+      </div>
+      <div class="col-after">
+        <span class="al">With the system</span>
+        <div class="c-row"><span class="c-mark-a">&#10003;</span><span class="c-text">Every inbound contact gets an immediate response. Job captured, qualified, and booked. Your office never knew it came in.</span></div>
+        <div class="c-row"><span class="c-mark-a">&#10003;</span><span class="c-text">6 PM arrives. System stays on. Every after-hours contact captured, triaged, and either booked or escalated based on urgency criteria.</span></div>
+        <div class="c-row"><span class="c-mark-a">&#10003;</span><span class="c-text">Emergency flagged in under 60 seconds. Routed to the correct personnel with full context before the competitor even picks up.</span></div>
+        <div class="c-row"><span class="c-mark-a">&#10003;</span><span class="c-text">Reminder sent the night before. Morning-of message 2 hours ahead. Customer is ready. Technician arrives on time.</span></div>
+        <div class="c-row"><span class="c-mark-a">&#10003;</span><span class="c-text">2 hours after job completion, review request sent with direct Google link. 4.1 becomes 4.6 before summer ends.</span></div>
+        <div class="c-row"><span class="c-mark-a">&#10003;</span><span class="c-text">One dashboard. Every appointment, team assignment, inspection, and incoming job visible in real time from a single screen.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 9 · MATH -->
+  <section class="section bg-black">
+    <div class="sec-label reveal">The math</div>
+    <h2 class="sec-h2 reveal">What this is worth to<br>any HVAC operation <em>in peak season</em></h2>
+    
+    <div class="math-grid reveal">
+      <div class="math-card">
+        <div class="math-num"><span class="math-unit">$</span>800 to $4,800</div>
+        <span class="math-label">Recovered per week</span>
+        <p class="math-desc">4 missed calls captured daily across a job value range of $200 to $1,200. Conservative estimate for any operation taking 40 or more calls a day at peak.</p>
+      </div>
+      <div class="math-card">
+        <div class="math-num"><span class="math-unit">$</span>400 to $2,400</div>
+        <span class="math-label">From emergency routing alone</span>
+        <p class="math-desc">2 correctly identified and routed emergency jobs per week that previously expired in the queue. Across the $200 to $1,200 job value range those are real jobs completed instead of lost.</p>
+      </div>
+      <div class="math-card">
+        <div class="math-num"><span class="math-unit">$</span>297</div>
+        <span class="math-label">Your monthly cost</span>
+        <p class="math-desc">At the lower end of the job value range one recovered weekend call pays for the month. At the higher end it covers the next several months. The system works either way.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 10 · FOUNDING MEMBER -->
+  <section class="section bg-surface" id="founding">
+    <div class="sec-label reveal">Founding member offer</div>
+    <h2 class="sec-h2 reveal">5 day special offer.<br><em>Rate locked for life.</em></h2>
+    <p class="sec-p reveal">This is a 5 day special offer for founding members. Lock in this rate permanently and have direct input on how the system gets built. When pricing increases after launch, founding members are not affected.</p>
+
+    <div class="founding-card reveal">
+      <div class="fm-badge">Founding Member Rate · 2026</div>
+      <div class="fm-price-row">
+        <span class="fm-price">$297</span>
+        <span class="fm-sub">per month</span>
+      </div>
+      <span class="fm-price-note">Rate locked permanently · No setup fees · No contract · Cancel anytime</span>
+      
+      <span class="fm-includes">Everything included</span>
+      <div class="fm-item"><span class="fm-check">&#10003;</span><span class="fm-item-text"><strong>24/7 inbound call and message management</strong> · every contact answered immediately, captured, and handled around the clock</span></div>
+      <div class="fm-item"><span class="fm-check">&#10003;</span><span class="fm-item-text"><strong>Emergency qualification and routing</strong> · critical jobs identified instantly and sent to the right personnel with full context</span></div>
+      <div class="fm-item"><span class="fm-check">&#10003;</span><span class="fm-item-text"><strong>Job and inspection scheduling</strong> · routine bookings handled automatically and synced directly into your calendar</span></div>
+      <div class="fm-item"><span class="fm-check">&#10003;</span><span class="fm-item-text"><strong>Appointment confirmations and reminders</strong> · sent at booking, 24 hours before, and morning of arrival</span></div>
+      <div class="fm-item"><span class="fm-check">&#10003;</span><span class="fm-item-text"><strong>Post-job review requests</strong> · automated 2 hours after every completed job with a direct Google Business link</span></div>
+      <div class="fm-item"><span class="fm-check">&#10003;</span><span class="fm-item-text"><strong>Single operations dashboard</strong> · appointments, scheduling, team assignments, inspections, quoting, and incoming jobs all in one screen</span></div>
+      <div class="fm-item"><span class="fm-check">&#10003;</span><span class="fm-item-text"><strong>Founding member Discord access</strong> · direct line to the team, early feature input, and your voice in how the product gets shaped</span></div>
+
+      <div class="fm-spots">
+        <span class="fm-spots-label">Special offer closes in</span>
+        <span class="fm-spots-val" id="founding-cd">calculating...</span>
+      </div>
+
+      <a href="#" class="btn-fm" onclick="openModal(); return false;">Claim Your Founding Spot <span class="btn-hero-icon">&#8594;</span></a>
+      <p class="fm-note">After- [x] Implement CONTRAST & MATH sections (before/after grids, ROI calculations)
+- [x] Implement FOUNDING MEMBER section (pricing, includes list, Flutterwave link)
+- [x] Implement POST-PAYMENT section (Discord flow, hidden by default)r access.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 11 · POST-PAYMENT -->
+  <section id="postPayment">
+    <div class="hero-glow"></div>
+    <div class="pp-check">&#10003;</div>
+    <h2 class="pp-title">Payment confirmed.<br>Welcome to the founding group.</h2>
+    <p class="pp-sub">You are in. Here is exactly what happens next to get your access activated.</p>
+
+    <div class="pp-steps">
+      <div class="pp-step">
+        <span class="pp-step-num">Step 01</span>
+        <span class="pp-step-text"><strong>Join the Eccentric Systems Discord</strong> using the button below. This is where everything happens before and after launch.</span>
+      </div>
+      <div class="pp-step">
+        <span class="pp-step-num">Step 02</span>
+        <span class="pp-step-text">Go to the <strong>#submit-your-receipt channel</strong> and paste your Flutterwave payment confirmation number along with the email address you used to pay.</span>
+      </div>
+      <div class="pp-step">
+        <span class="pp-step-num">Step 03</span>
+        <span class="pp-step-text"><strong>We verify your payment</strong> and assign your Founding Member role within 24 hours. Once assigned you will see all founding member channels immediately.</span>
+      </div>
+      <div class="pp-step">
+        <span class="pp-step-num">Step 04</span>
+        <span class="pp-step-text"><strong>Introduce yourself in #welcome</strong> and tell us about your operation. Your input directly shapes how the system gets built for HVAC operators like you.</span>
+      </div>
+    </div>
+
+    <a href="https://discord.com/invite/zJsMtGkz" target="_blank" class="pp-discord-btn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.001.022.015.043.032.054a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+      </svg>
+      Join the Discord Server
+    </a>
+
+    <p class="pp-note">Questions before you get access? Email us at aliuabdulmujib7@gmail.com<br>Your founding member rate of $297 per month is now locked permanently.</p>
+  </section>
+
+  <!-- SECTION 12 · FOOTER -->
+  <footer class="footer">
+    <div class="footer-brand">Eccentric Systems · 2026</div>
+    <div class="footer-links">
+      <a href="https://discord.com/invite/zJsMtGkz" target="_blank">Contact</a>
+      <a href="https://discord.com/channels/1483422909467987968/1483423450688389191" target="_blank">Support</a>
+    </div>
+  </footer>
+
+  <!-- SECTION 13 · INTAKE MODAL -->
+  <div id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-label" id="modal-step-label">Step 1 of 2</div>
+        <h2 class="modal-title">Tell us about your operation</h2>
+        <button class="btn-close" onclick="closeModal()">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <div class="step-indicator">
+          <div class="step-dot active" id="dot-1"></div>
+          <div class="step-dot" id="dot-2"></div>
+        </div>
+
+        <div id="step-1" class="form-step active">
+          <div class="form-sec-title">Your details</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="firstName">First Name</label>
+              <input type="text" class="form-input" id="firstName" placeholder="Mike">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="bizName">Business Name</label>
+              <input type="text" class="form-input" id="bizName" placeholder="Metro HVAC">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group full">
+              <label class="form-label" for="email">Email Address</label>
+              <input type="email" class="form-input" id="email" placeholder="mike@metrohvac.com">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="city">City and State</label>
+              <input type="text" class="form-input" id="city" placeholder="Houston, TX">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="techs">Number of Technicians</label>
+              <select class="form-select" id="techs">
+                <option value="">Select range</option>
+                <option value="1 to 3">1 to 3</option>
+                <option value="4 to 8">4 to 8</option>
+                <option value="9 to 15">9 to 15</option>
+                <option value="16 to 30">16 to 30</option>
+                <option value="30 or more">30 or more</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-form-next" onclick="nextStep(2)">Continue &#8594;</button>
+          </div>
+        </div>
+
+        <div id="step-2" class="form-step">
+          <div class="form-sec-title">Your operation</div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label" for="tool">Current Scheduling Tool</label>
+            <select class="form-select" id="tool">
+              <option value="">Select your tool</option>
+              <option value="ServiceTitan">ServiceTitan</option>
+              <option value="Jobber">Jobber</option>
+              <option value="Housecall Pro">Housecall Pro</option>
+              <option value="Google Calendar">Google Calendar</option>
+              <option value="Spreadsheet or paper">Spreadsheet or paper</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label" for="pain">Biggest pain point right now</label>
+            <select class="form-select" id="pain">
+              <option value="">Select primary issue</option>
+              <option value="Missed calls during peak hours">Missed calls during peak hours</option>
+              <option value="After-hours calls going unanswered">After-hours calls going unanswered</option>
+              <option value="Emergency jobs not being identified fast enough">Emergency jobs not being identified fast enough</option>
+              <option value="No-shows and last-minute cancellations">No-shows and last-minute cancellations</option>
+              <option value="Managing the team across too many tools">Managing the team across too many tools</option>
+              <option value="Not getting enough Google reviews">Not getting enough Google reviews</option>
+              <option value="All of the above">All of the above</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="notes">Additional notes (optional)</label>
+            <textarea class="form-textarea" id="notes" placeholder="For example: we get a lot of after-hours emergency calls on weekends and lose them every time..."></textarea>
+          </div>
+
+          <div class="form-divider"></div>
+          
+          <div class="form-notice">
+            <strong>What happens next:</strong> Completing this reveals your payment link. After payment, you will receive a Discord invite to join your founding member community and activate your access.
+          </div>
+
+          <div class="form-actions" id="formActions2">
+            <button class="btn-form-back" onclick="nextStep(1)">&#8592; Back</button>
+            <button class="btn-form-next" onclick="submitAndShowPayment()">Show Payment Link &#8594;</button>
+          </div>
+          
+          <div id="paymentReveal" class="payment-reveal">
+            <div class="rev-title">Your founding member spot is ready</div>
+            <p class="rev-sub">Complete your $297 per month payment below. After payment you will be brought straight to your access instructions.</p>
+            <a href="https://flutterwave.com/pay/yppaqtt1hbsk" target="_blank" class="btn-form-pay">Complete Payment &#8594; $297 per month</a>
+            <p class="rev-small">Secure checkout via Flutterwave · Rate locked permanently · Cancel anytime</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 14 · JAVASCRIPT -->
+  <script>
+    // Constants
+    const EMAIL_ENDPOINT = "https://formsubmit.co/ajax/aliuabdulmujib7@gmail.com";
+
+    // Block 1 & 2: Main Countdown & Mini Countdown
+    function initCountdowns() {
+      const KEY = 'es_hvac_cd_2026d'; // Updated key to reset existing timer
+      let endStamp = localStorage.getItem(KEY);
+      
+      if (!endStamp) {
+        // Exactly 5 days from the exact load time
+        endStamp = Date.now() + (5 * 24 * 60 * 60 * 1000);
+        localStorage.setItem(KEY, endStamp);
+      } else {
+        endStamp = parseInt(endStamp, 10);
+      }
+
+      const els = {
+        d: document.getElementById('cd-d'),
+        h: document.getElementById('cd-h'),
+        m: document.getElementById('cd-m'),
+        s: document.getElementById('cd-s'),
+        mini: document.getElementById('founding-cd')
+      };
+
+      function update() {
+        const diff = endStamp - Date.now();
+        if (diff <= 0) {
+          if(els.d) els.d.textContent = '00';
+          if(els.h) els.h.textContent = '00';
+          if(els.m) els.m.textContent = '00';
+          if(els.s) els.s.textContent = '00';
+          if(els.mini) els.mini.textContent = 'Offer ended';
+          return;
+        }
+
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / 1000 / 60) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+
+        const pad = n => n < 10 ? '0' + n : n;
+
+        if (els.d) els.d.textContent = pad(d);
+        if (els.h) els.h.textContent = pad(h);
+        if (els.m) els.m.textContent = pad(m);
+        if (els.s) els.s.textContent = pad(s);
+        
+        if (els.mini) {
+          els.mini.textContent = `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+        }
+      }
+
+      update();
+      setInterval(update, 1000);
+    }
+
+    // Block 3: Post-payment redirect detection
+    function checkPaymentRedirect() {
+      if (window.location.hash === '#paid' || window.location.search.includes('paid=true')) {
+        const pp = document.getElementById('postPayment');
+        if (pp) {
+          pp.classList.add('active');
+          const overlay = document.getElementById('modalOverlay');
+          if (overlay) overlay.classList.remove('active');
+          document.body.style.overflow = '';
+          setTimeout(() => pp.scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+      }
+    }
+
+    // Block 4: Scroll Reveal
+    function initScrollReveal() {
+      const observer = new IntersectionObserver((entries) => {
+        let delayIndex = 0;
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.classList.add('visible');
+            }, delayIndex * 80);
+            delayIndex++;
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    }
+
+    // Block 5: Modal and Form Logic
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target.id === 'modalOverlay') {
+        closeModal();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    function nextStep(step) {
+      if (step === 2) {
+        // Validate Step 1
+        const fn = document.getElementById('firstName').value.trim();
+        const bn = document.getElementById('bizName').value.trim();
+        const em = document.getElementById('email').value.trim();
+        const ci = document.getElementById('city').value.trim();
+        
+        if (!fn || !bn || !em || !ci) {
+          alert("Please complete all required fields (First Name, Business Name, Email, City).");
+          return;
+        }
+        if (!em.includes('@')) {
+          alert("Please enter a valid email address.");
+          return;
+        }
+
+        document.getElementById('step-1').classList.remove('active');
+        document.getElementById('step-2').classList.add('active');
+        
+        document.getElementById('dot-1').classList.remove('active');
+        document.getElementById('dot-1').classList.add('done');
+        document.getElementById('dot-2').classList.add('active');
+        
+        document.getElementById('modal-step-label').textContent = "Step 2 of 2";
+        
+      } else if (step === 1) {
+        document.getElementById('step-2').classList.remove('active');
+        document.getElementById('step-1').classList.add('active');
+        
+        document.getElementById('dot-2').classList.remove('active');
+        document.getElementById('dot-1').classList.add('active');
+        document.getElementById('dot-1').classList.remove('done');
+        
+        document.getElementById('modal-step-label').textContent = "Step 1 of 2";
+      }
+      
+      const modalBox = document.querySelector('.modal-box');
+      if (modalBox) modalBox.scrollTop = 0;
+    }
+
+    function submitAndShowPayment() {
+      // Validate Step 2
+      const tool = document.getElementById('tool').value;
+      const pain = document.getElementById('pain').value;
+      
+      if (!tool || !pain) {
+        alert("Please select your scheduling tool and primary pain point.");
+        return;
+      }
+      
+      const fn = document.getElementById('firstName').value.trim();
+      const bn = document.getElementById('bizName').value.trim();
+      const em = document.getElementById('email').value.trim();
+      const ci = document.getElementById('city').value.trim();
+      const techs = document.getElementById('techs').value;
+      const notes = document.getElementById('notes').value.trim();
+
+      const inputs = document.querySelectorAll('.form-input, .form-select, .form-textarea');
+      inputs.forEach(input => input.disabled = true);
+
+      const fd = new FormData();
+      fd.append("name", fn + " | " + bn);
+      fd.append("email", em);
+      fd.append("_subject", "New Founding Member Submission: " + bn + " | " + ci);
+      fd.append("_template", "table");
+      fd.append("_captcha", "false");
+      fd.append("Business", bn);
+      fd.append("City", ci);
+      fd.append("Technicians", techs);
+      fd.append("Scheduling Tool", tool);
+      fd.append("Primary Pain", pain);
+      fd.append("Notes", notes);
+
+      fetch(EMAIL_ENDPOINT, {
+        method: "POST",
+        body: fd
+      }).catch(e => console.log(e))
+        .finally(() => {
+          document.getElementById('paymentReveal').classList.add('active');
+          document.getElementById('formActions2').style.display = 'none';
+          
+          setTimeout(() => {
+            const rev = document.getElementById('paymentReveal');
+            if (rev) rev.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        });
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      initCountdowns();
+      checkPaymentRedirect();
+      initScrollReveal();
+    });
+  </script>
+</body>
 </html>
