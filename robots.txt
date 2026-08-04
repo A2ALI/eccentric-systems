@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://eccentricsystems.co/sitemap.xml
